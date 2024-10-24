@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code to Table Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 60%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+            font-family: monospace;
+        }
+
+        button {
+            width: 32%;
+            padding: 10px;
+            margin: 5px 1%;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #output {
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        td {
+            background-color: white !important; /* รีเซ็ตพื้นหลังเป็นขาว */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Code to Table Converter</h1>
+        <textarea id="codeInput" placeholder="ใส่โค้ดที่นี่..."></textarea>
+
+        <div>
+            <label>
+                <input type="radio" name="colorOption" value="column" checked>
+                ใส่สีเฉพาะคอลัมน์แรก
+            </label>
+            <label>
+                <input type="radio" name="colorOption" value="all">
+                ใส่สีทั้งตาราง
+            </label>
+            <input type="color" id="colorPicker" value="#eaeaea" disabled>
+        </div>
+
+        <div>
+            <label>
+                <input type="checkbox" id="highlightRow2Column2">
+                ใส่สีแถวที่ 2 คอลัมน์ที่ 2 เป็นต้นไป
+            </label>
+        </div>
+
+        <button onclick="convertToTable()">Convert</button>
+        <button onclick="copyTable()">Copy as Table</button>
+
+        <div id="output"></div>
+    </div>
+
+    <script>
+        const colorPicker = document.getElementById("colorPicker");
+
+        // เปิดใช้งานการเลือกสีเมื่อเลือก 'ใส่สีทั้งตาราง'
+        document.querySelectorAll('input[name="colorOption"]').forEach(option => {
+            option.addEventListener('change', (e) => {
+                colorPicker.disabled = e.target.value !== 'all';
+                if (!colorPicker.disabled) {
+                    colorPicker.focus();
+                }
+            });
+        });
+
+        function convertToTable() {
+            const codeInput = document.getElementById("codeInput").value;
+            const lines = codeInput.split("\n");
+            const colorOption = document.querySelector('input[name="colorOption"]:checked').value;
+            const selectedColor = colorPicker.value;
+            const highlightRow2Column2 = document.getElementById("highlightRow2Column2").checked;
+
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr><th>Line</th><th>Code</th></tr>
+                    </thead>
+                    <tbody>`;
+
+            lines.forEach((line, index) => {
+                let rowColor = "";
+                if (colorOption === "column" && index % 2 === 0) {
+                    rowColor = 'style="background-color: #f9f9f9;"';
+                } else if (colorOption === "all") {
+                    rowColor = `style="background-color: ${selectedColor};"`;
+                }
+
+                tableHTML += `<tr ${rowColor}>`;
+                tableHTML += `<td>${index + 1}</td>`;
+
+                // ถ้าเลือก Checkbox ให้ใส่สีแถวที่ 2 คอลัมน์ที่ 2 เป็นต้นไป
+                if (highlightRow2Column2 && index >= 1) {
+                    tableHTML += `<td style="background-color: ${selectedColor};">${line}</td>`;
+                } else {
+                    // ไม่ใส่สี ให้เป็นพื้นขาว
+                    tableHTML += `<td style="background-color: white !important;">${line}</td>`;
+                }
+
+                tableHTML += `</tr>`;
+            });
+
+            tableHTML += "</tbody></table>";
+            document.getElementById("output").innerHTML = tableHTML;
+        }
+
+        function copyTable() {
+            const outputDiv = document.getElementById("output");
+            const range = document.createRange();
+            range.selectNode(outputDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            try {
+                document.execCommand("copy");
+                alert("Copied to clipboard!");
+            } catch (err) {
+                alert("Failed to copy!");
+            }
+
+            window.getSelection().removeAllRanges();
+        }
+    </script>
+</body>
+</html>
